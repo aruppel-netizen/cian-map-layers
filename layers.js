@@ -263,8 +263,7 @@
     const p = $("peek");
     const total = A.LISTINGS.length;
     if (!S.active.length) {
-      p.innerHTML = `<div class="handle"></div><div class="ph"><b>${total} из ${total} объявлений</b><span>с фото</span></div><div style="padding:0 20px"><button class="btn sec full" type="button" id="allFlats">Показать списком</button></div>`;
-      $("allFlats").onclick = () => openFlat(A.LISTINGS[0].id);
+      p.innerHTML = `<div class="handle"></div><div class="ph"><b>7 726 из 8 000 объявлений</b></div>`;
       requestAnimationFrame(placeControls); return;
     }
     const ds = matched();
