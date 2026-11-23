@@ -85,7 +85,7 @@
       if (!polys.some((pl) => inPoly(pt, pl))) continue;
       const k = 0.75 + rnd() * 0.6;
       const n = rnd() < 0.09 ? 2 + Math.floor(rnd() * 6) : 1;
-      BG.push({ lat: pt[0], lon: pt[1], d, n, i: BG.length, g: rnd() < 0.3, price: Math.round((RENT_MED[d.group] || 40000) * k / 1000) * 1000, buy: Math.round((BUY_MED[d.group] || 9) * k * 10) / 10 });
+      BG.push({ lat: pt[0], lon: pt[1], d, n, i: BG.length, g: rnd() < (d.group === "new" ? 0.75 : 0.15), price: Math.round((RENT_MED[d.group] || 40000) * k / 1000) * 1000, buy: Math.round((BUY_MED[d.group] || 9) * k * 10) / 10 });
       want--;
     }
   });
@@ -159,6 +159,7 @@
   const flatPrice = (f) => S.seg === "rent" ? `${fmt(f.price)} ₽/мес` : `${(buyPriceOf(f) / 1e6).toFixed(1).replace(".", ",")} млн ₽`;
   // Для покупки берём те же квартиры с ценой продажи «как в районе» — пример
   const buyPriceOf = (f) => { const d = A.findDistrict(f.lat, f.lon); return Math.round((BUY_MED[d.group] || 9) * 1e6 * (f.area / 36) / 10000) * 10000; };
+  const isNewb = (f) => A.LISTINGS.indexOf(f) % 3 === 1; // новостройки среди 7 квартир — пример
   const flatPay = (f) => Math.round(buyPriceOf(f) * 0.8 * 0.0085 / 1000); // платёж, тыс. ₽/мес — пример: взнос 20%
   const flatTitle = (f) => `${f.flatType === "studio" ? "Студия" : f.rooms ? `${f.rooms}-комн. кв.` : "Своб. планировка"} ･ ${String(f.area).replace(".", ",")} м² ･ ${f.floor}/${f.floorsTotal} этаж`;
   const flatAddr = (f) => `${f.street}, ${f.house}`;
@@ -226,7 +227,7 @@
       const show = !act || matches(b.d);
       if (b.n > 1 && far && mi++ % 3) { b = { ...b, n: 1 }; }
       if (act && !show && b.n === 1) return;
-      const cls = (show ? "" : "dim") + (b.g ? " green" : "");
+      const cls = (show ? "" : "dim") + (b.g && S.seg === "buy" ? " green" : "");
       let mark;
       if (b.n > 1) {
         const label = S.seg === "rent" ? `от ${Math.round(b.price / 1000)} тыс.` : `от ${String(b.buy).replace(".", ",")} млн`;
@@ -244,7 +245,7 @@
       const d = city.find((x) => x.id === A.findDistrict(f.lat, f.lon).id);
       const show = !act || (d && matches(d));
       const label = S.seg === "rent" ? `${Math.round(f.price / 1000)} тыс.` : `${(buyPriceOf(f) / 1e6).toFixed(1).replace(".", ",")} млн`;
-      const green = A.LISTINGS.indexOf(f) % 3 === 1;
+      const green = S.seg === "buy" && isNewb(f); // зелёный — новостройка, только в покупке
       const p = new ymaps.Placemark([f.lat, f.lon], { label, cls: (show ? "" : "dim") + (green ? " green" : "") },
         { iconLayout: pinLayout, iconShape: { type: "Rectangle", coordinates: [[-40, -14], [40, 14]] }, zIndex: show ? 300 : 150 });
       p.events.add("click", () => openFlat(f.id));
@@ -306,7 +307,7 @@
       <button class="fav" type="button" data-fav="${f.id}" aria-label="В избранное">${ic(S.fav[f.id] ? "heartf" : "heart", 18, "#fff", 2)}</button>
       ${why[0] ? `<span class="why">${why[0]}</span>` : ""}<span class="num">${f.photos.length} фото</span></div>
       <button type="button" class="ftext" data-flat="${f.id}" style="border:0;background:none;padding:0;text-align:left;display:flex;flex-direction:column;gap:3px">
-      <span class="fp">${flatPrice(f)}</span>${S.seg === "buy" ? `<span class="fpay">Платёж ≈ ${flatPay(f)} тыс. ₽/мес</span>` : ""}<span class="fs">${flatTitle(f)}</span><span class="fa">${flatAddr(f)}</span>
+      <span class="fp">${flatPrice(f)}</span>${S.seg === "buy" ? `<span class="fpay">Платёж ≈ ${flatPay(f)} тыс. ₽/мес</span>` : ""}<span class="fs">${S.seg === "buy" && isNewb(f) ? `<span class="newb">Новостройка</span> ` : ""}${flatTitle(f)}</span><span class="fa">${flatAddr(f)}</span>
       <span class="metro"><i style="background:#${f.metroColor}"></i>${f.metro} · ${f.metroMin} мин ${f.metroTransport === "walk" ? "пешком" : "на транспорте"}</span></button></div>`;
   }
   function renderPeek() {
