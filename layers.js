@@ -107,8 +107,8 @@
         test: (d) => d.traffic <= 6, reason: (d) => d.trafficNote || "Тихо вечером" },
       { id: "green", t: "Много зелени", c: C.green, base: 1, boost: { pets: 1 },
         test: (d) => d.group === "green" || d.parks.length >= 2, reason: (d) => d.parks[0] ? d.parks[0].name : "Парки рядом" },
-      { id: "night", t: "Ночная жизнь", c: C.magenta, base: 1, boost: { studio: 1, kids: -4 },
-        test: (d) => d.group === "center" && d.young >= 38, reason: () => "Жизнь после 22:00" },
+      { id: "walk", t: "Прогуляться и отдохнуть", c: C.magenta, base: 1, boost: { studio: 1 },
+        test: (d) => d.parks.length >= 1 && d.young >= 33, reason: (d) => `${d.parks[0].name} и кафе рядом` },
       { id: "schools", t: "Школы и сады", c: C.amber, base: 0, boost: { kids: 5 }, why: "фильтр «с детьми»",
         test: (d) => d.schoolAvg >= 4.45 && d.group !== "center", reason: (d) => { const b = bestSchool(d); return `${b.name} · ★ ${String(b.rating).replace(".", ",")}`; } },
     ],
@@ -392,7 +392,7 @@
       <div class="scroll">
       ${forYou.length ? `<div class="shelf"><div class="shelf-h"><b>Под ваш запрос</b><span>по фильтрам</span></div><div class="cards">${forYou.map((l) => lcard(l, l.why)).join("")}</div></div>` : ""}
       <div class="shelf"><div class="shelf-h"><b>Вам может понравиться</b><span>по просмотрам</span></div><div class="cards">${may.map((l) => lcard(l)).join("")}</div></div>
-      <div class="shelf" style="margin-bottom:0"><div class="shelf-h"><b>Все слои</b></div><div style="margin-top:4px">${all.map((l) => `<button class="lrow" type="button" data-l="${l.id}" aria-pressed="${S.active.includes(l.id)}"><span class="swatch" style="background:${l.c}"></span><span class="tx"><b>${l.t}</b><span>${layerDistricts(l).length} районов</span></span><span class="tg ${S.active.includes(l.id) ? "on" : ""}"></span></button>`).join("")}</div></div>
+      <div class="shelf" style="margin-bottom:0"><div class="shelf-h"><b>Все слои</b></div><div style="margin-top:4px">${all.map((l) => `<button class="lrow" type="button" data-l="${l.id}" aria-pressed="${S.active.includes(l.id)}"><span class="swatch" style="background:${l.c}"></span><span class="tx"><b>${l.t}</b><span>${layerDistricts(l).length} ${plural(layerDistricts(l).length, "район", "района", "районов")}</span></span><span class="tg ${S.active.includes(l.id) ? "on" : ""}"></span></button>`).join("")}</div></div>
       </div>
       <div class="sticky"><button class="btn full" type="button" id="applyLayers">${S.active.length ? `Показать на карте · ${S.active.length} ${plural(S.active.length, "слой", "слоя", "слоёв")}` : "Выберите слой"}</button></div>`;
     $("closeLayers").onclick = closeSheets;
