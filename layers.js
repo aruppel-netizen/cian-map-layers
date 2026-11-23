@@ -199,12 +199,12 @@
       const show = !act || (d && matches(d));
       const label = S.seg === "rent" ? `${Math.round(f.price / 1000)} тыс.` : `${(buyPriceOf(f) / 1e6).toFixed(1).replace(".", ",")} млн`;
       const p = new ymaps.Placemark([f.lat, f.lon], { label, cls: show ? "" : "dim" },
-        { iconLayout: pinLayout, iconShape: { type: "Rectangle", coordinates: [[-34, -36], [34, 4]] }, zIndex: show ? 300 : 150 });
+        { iconLayout: pinLayout, iconShape: { type: "Rectangle", coordinates: [[-40, -14], [40, 14]] }, zIndex: show ? 300 : 150 });
       p.events.add("click", () => openFlat(f.id));
       pinsCol.add(p);
     });
     if (S.active.includes("commute")) {
-      const w = new ymaps.Placemark(WORK.coords, { label: "Работа", cls: "work" }, { iconLayout: pinLayout, iconShape: { type: "Rectangle", coordinates: [[-34, -36], [34, 4]] }, zIndex: 400 });
+      const w = new ymaps.Placemark(WORK.coords, { label: "Работа", cls: "work" }, { iconLayout: pinLayout, iconShape: { type: "Rectangle", coordinates: [[-40, -14], [40, 14]] }, zIndex: 400 });
       pinsCol.add(w);
     }
     if (fit) {

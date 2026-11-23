@@ -267,11 +267,12 @@ body{letter-spacing:-.2px}
 .side .small{font-size:12px}
 .hint{border:0;text-align:left;font-family:inherit;cursor:pointer}
 /* ymaps pin layouts */
-.ypin{position:relative;transform:translate(-50%,calc(-100% + 7px));display:inline-flex;flex-direction:column;align-items:center;gap:3px;filter:drop-shadow(0 2px 4px rgba(0,0,0,.1));font-family:var(--font);cursor:pointer}
-.ypin .bb{background:#fff;border-radius:4px;height:24px;display:flex;align-items:center;padding:4px;box-sizing:border-box;color:#0d162e;font-size:14px;line-height:17px;font-weight:600;letter-spacing:-.24px;white-space:nowrap}
-.ypin .pd{width:14px;height:14px;border-radius:50%;background:#0468ff;border:2px solid #fff;box-sizing:border-box}
+.ypin{position:relative;transform:translate(-50%,-50%);display:inline-flex;font-family:var(--font);cursor:pointer}
+/* Пин как в приложениях на проде (Figma 551:132621): белая пилюля, скругление 16, голубая обводка, мягкая тень */
+.ypin .bb{background:#fff;border:1px solid #d9e8ff;border-radius:16px;display:flex;align-items:center;padding:4px 8px;box-sizing:border-box;box-shadow:0 4px 16px rgba(0,0,0,.08);color:#152242;font-size:14px;line-height:17px;font-weight:600;letter-spacing:-.24px;white-space:nowrap}
+.ypin .pd{display:none}
 .ypin.dim{opacity:.45}
-.ypin.work .bb{background:#0d162e;color:#fff}.ypin.work .pd{background:#0d162e}
+.ypin.work .bb{background:#152242;border-color:#152242;color:#fff}
 .ydist{transform:translate(-50%,-50%);display:inline-flex;flex-direction:column;border-radius:6px;padding:3px 7px;color:#fff;font-family:var(--font);font-size:12px;line-height:15px;font-weight:700;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,.15);cursor:pointer}
 .ydist span{font-weight:400;font-size:11px;line-height:13px;opacity:.9}
 /* layer cards — подборка с живыми фото */
