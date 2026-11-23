@@ -387,9 +387,8 @@
     const rest = r.filter((l) => !forYou.includes(l));
     const may = [...rest.filter((l) => l.badge || l.tool), ...rest.filter((l) => !l.badge && !l.tool)].slice(0, 3);
     const all = rest.filter((l) => !may.includes(l));
-    const f = D().filters.filter((x) => S.filters[x.id]).map((x) => x.t.toLowerCase()).join(", ");
     $("layersSheet").innerHTML = `<div class="handle" style="margin-top:8px"></div>
-      <div class="head"><div><h2>Слои карты</h2><div class="sub">Подобрали под запрос: ${f || "без фильтров"}</div></div><button class="iconbtn" type="button" id="closeLayers" aria-label="Закрыть">${ic("close", 22)}</button></div>
+      <div class="head"><div><h2>Слои карты</h2></div><button class="iconbtn" type="button" id="closeLayers" aria-label="Закрыть">${ic("close", 22)}</button></div>
       <div class="scroll">
       ${forYou.length ? `<div class="shelf"><div class="shelf-h"><b>Под ваш запрос</b><span>по фильтрам</span></div><div class="cards">${forYou.map((l) => lcard(l, l.why)).join("")}</div></div>` : ""}
       <div class="shelf"><div class="shelf-h"><b>Вам может понравиться</b><span>по просмотрам</span></div><div class="cards">${may.map((l) => lcard(l)).join("")}</div></div>
