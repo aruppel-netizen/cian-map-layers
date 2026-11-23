@@ -315,3 +315,17 @@ body{letter-spacing:-.2px}
 /* flat screen */
 .fbig{height:300px;position:relative;background:#dfe4ee}
 .fbody{padding:16px 20px;display:flex;flex-direction:column;gap:6px}
+
+/* Нижняя шторка как в приложениях: свёрнута — счётчик, развёрнута — список */
+.peek{transition:top .28s cubic-bezier(.2,.8,.2,1);overflow:hidden}
+.peek .ph{flex-wrap:wrap;gap:2px 12px}.peek .ph b{white-space:nowrap}
+.peek .grab{touch-action:none;cursor:grab;position:relative;user-select:none}
+.peek .ph.center{justify-content:center;padding:20px 20px 10px}
+.peek .plist{display:none}
+.peek.open{max-height:none;overflow-y:auto;z-index:7;border-radius:16px 16px 0 0}
+.peek.open .grab{position:sticky;top:0;background:#fff;z-index:2}
+.peek.open .plist{display:flex;flex-direction:column;gap:20px;padding:4px 16px 16px}
+.peek.open .lane{flex-direction:column;overflow:visible;gap:20px;scroll-snap-type:none}
+.peek.open .fcard{width:100%}
+.peek.open .fcard .fph{height:220px}
+.fcard .fpay{font-size:13px;line-height:18px;color:var(--green-t,#227e01);font-weight:600}
