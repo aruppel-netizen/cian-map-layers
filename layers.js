@@ -260,7 +260,7 @@
       if (ds.length) {
         const lats = ds.map((d) => d.center[0]), lons = ds.map((d) => d.center[1]);
         ymap.setBounds([[Math.min(...lats) - 0.01, Math.min(...lons) - 0.02], [Math.max(...lats) + 0.01, Math.max(...lons) + 0.02]],
-          { checkZoomRange: true, zoomMargin: [170, 70, 420, 30], duration: 300 });
+          { checkZoomRange: true, zoomMargin: [document.querySelector(".top").offsetHeight + 16, 70, $("peek").offsetHeight + 96, 30], duration: 300 });
       } else ymap.setCenter(SPB, 11, { duration: 300 });
     }
   }
@@ -325,8 +325,8 @@
     const dchips = dsSorted.slice(0, 10).map((d) => `<button class="dchip" type="button" data-d="${d.id}"><img src="${dPhoto(d, 120)}" alt="" loading="lazy"><span><b>${d.name.replace(/:.*$/, "")}</b><span>${districtSub(d)}</span></span></button>`).join("");
     const empty = `<div style="padding:0 20px 4px;font-size:14px;color:var(--sec)">${ds.length ? "В этих районах пока нет квартир с фото — посмотрите районы ниже." : `Ни один район не подходит под все слои. Снимите «${L(S.active[S.active.length - 1]).t}».`}</div>`;
     p.innerHTML = `<div class="grab"><div class="handle"></div><div class="ph"><b>${fl.length ? "Подборка под ваши слои" : "Подборка пуста"}</b><span>${fl.length} ${plural(fl.length, "квартира", "квартиры", "квартир")} · ${ds.length} ${plural(ds.length, "район", "района", "районов")}${S.seg === "buy" && fl.length ? ` · платёж от ${Math.min(...fl.map((x) => flatPay(x.f)))} тыс.` : ""}</span></div></div>
-      ${fl.length ? `<div class="lane">${fl.map(flatCard).join("")}</div>` : empty}
-      ${ds.length ? `<div class="dchips">${dchips}</div>` : ""}`;
+      ${ds.length ? `<div class="dchips top${fl.length ? "" : " always"}">${dchips}</div>` : ""}
+      ${fl.length ? `<div class="lane">${fl.map(flatCard).join("")}</div>` : empty}`;
     p.querySelectorAll("[data-d]").forEach((b) => (b.onclick = () => openStory(b.dataset.d)));
     bindPeek(p);
   }

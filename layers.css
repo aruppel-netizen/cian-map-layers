@@ -344,3 +344,10 @@ body{letter-spacing:-.2px}
 .ypin.multi.green .cnt{background:#34ac0a}
 .ydot.green.dim{background:#8a94ab}
 .newb{color:#34ac0a;font-weight:600}
+/* Свёрнутая шторка компактная: не выше ~45% экрана, карта и фильтры видны; районы — в развёрнутой */
+.peek:not(.open){max-height:45%}
+.peek:not(.open) .fph{height:112px}
+.peek:not(.open) .fcard{width:220px}
+.peek:not(.open) .fcard .fa{display:none}
+.peek:not(.open) .dchips:not(.always){display:none}
+.peek.open .dchips{padding:4px 16px 16px}
