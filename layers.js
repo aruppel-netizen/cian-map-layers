@@ -89,6 +89,23 @@
       want--;
     }
   });
+  // Каждая точка гороха — квартира (пример): фото из пула настоящих объявлений, метро района
+  const PHOTO_POOL = A.LISTINGS.flatMap((f) => f.photos);
+  const FLATS = BG.filter((b) => b.n === 1).map((b, i) => {
+    const r = rnd(); const type = r < 0.4 ? "studio" : r < 0.85 ? 1 : 2;
+    const area = type === "studio" ? 22 + Math.round(rnd() * 8) : type === 1 ? 32 + Math.round(rnd() * 10) : 44 + Math.round(rnd() * 14);
+    const floorsTotal = [5, 9, 12, 16, 17, 25][Math.floor(rnd() * 6)];
+    const m = (b.d.metro && b.d.metro[0]) || { name: b.d.nearestMetro || b.d.name.replace(/:.*$/, ""), color: "697797" };
+    const start = Math.floor(rnd() * PHOTO_POOL.length);
+    const f = { id: "bg" + i, flatType: type === "studio" ? "studio" : "flat", rooms: type === "studio" ? null : type, area, floor: 1 + Math.floor(rnd() * floorsTotal), floorsTotal,
+      price: Math.round(b.price * (type === 2 ? 1.25 : type === 1 ? 1 : 0.85) / 1000) * 1000, street: `р-н ${b.d.name.replace(/:.*$/, "")}`, house: "",
+      metro: m.name || m, metroColor: m.color || "697797", metroMin: 4 + Math.floor(rnd() * 16), metroTransport: rnd() < 0.7 ? "walk" : "transport",
+      lat: b.lat, lon: b.lon, d: b.d, newb: b.g, photos: Array.from({ length: 6 }, (_, k) => PHOTO_POOL[(start + k) % PHOTO_POOL.length]) };
+    b.f = f; return f;
+  });
+  const ALL_FLATS = [...A.LISTINGS, ...FLATS];
+  const findFlat = (id) => ALL_FLATS.find((x) => x.id === id);
+  const flatDistrict = (f) => f.d || city.find((x) => x.id === A.findDistrict(f.lat, f.lon).id);
   const bestSchool = (d) => d.schools.reduce((a, s) => (s.rating > a.rating ? s : a), d.schools[0]);
   const C = { blue: "#0468ff", green: "#2f9e4f", teal: "#1f8a70", orange: "#e2572b", purple: "#7c4ddb", magenta: "#c2378a", amber: "#e0a100", gray: "#697797", dark: "#0d162e" };
   const LAYERS = {
@@ -158,11 +175,11 @@
   const dcolor = (d) => { const ids = S.active.filter((id) => L(id).test(d)); return ids.length ? L(ids[ids.length - 1]).c : C.blue; };
   const flatPrice = (f) => S.seg === "rent" ? `${fmt(f.price)} ₽/мес` : `${(buyPriceOf(f) / 1e6).toFixed(1).replace(".", ",")} млн ₽`;
   // Для покупки берём те же квартиры с ценой продажи «как в районе» — пример
-  const buyPriceOf = (f) => { const d = A.findDistrict(f.lat, f.lon); return Math.round((BUY_MED[d.group] || 9) * 1e6 * (f.area / 36) / 10000) * 10000; };
-  const isNewb = (f) => A.LISTINGS.indexOf(f) % 3 === 1; // новостройки среди 7 квартир — пример
+  const buyPriceOf = (f) => { const d = f.d || A.findDistrict(f.lat, f.lon); return Math.round((BUY_MED[d.group] || 9) * 1e6 * (f.area / 36) / 10000) * 10000; };
+  const isNewb = (f) => (f.newb !== undefined ? f.newb : A.LISTINGS.indexOf(f) % 3 === 1); // новостройки — пример
   const flatPay = (f) => Math.round(buyPriceOf(f) * 0.8 * 0.0085 / 1000); // платёж, тыс. ₽/мес — пример: взнос 20%
   const flatTitle = (f) => `${f.flatType === "studio" ? "Студия" : f.rooms ? `${f.rooms}-комн. кв.` : "Своб. планировка"} ･ ${String(f.area).replace(".", ",")} м² ･ ${f.floor}/${f.floorsTotal} этаж`;
-  const flatAddr = (f) => `${f.street}, ${f.house}`;
+  const flatAddr = (f) => (f.house ? `${f.street}, ${f.house}` : f.street);
   const tag = (t, c, bg) => `<span class="tag" style="color:${c};background:${bg}">${t}</span>`;
   const tint = (c) => c + "1f";
 
@@ -226,7 +243,7 @@
     BG.forEach((b) => {
       const show = !act || matches(b.d);
       if (b.n > 1 && far && mi++ % 3) { b = { ...b, n: 1 }; }
-      if (act && !show && b.n === 1) return;
+      if (act && !show) return; // при слоях вне подходящих районов — ни гороха, ни мультипинов
       const cls = (show ? "" : "dim") + (b.g && S.seg === "buy" ? " green" : "");
       let mark;
       if (b.n > 1) {
@@ -234,6 +251,12 @@
         mark = new ymaps.Placemark([b.lat, b.lon], { n: b.n > 5 ? "6+" : b.n, label, cls },
           { iconLayout: multiLayout, iconShape: { type: "Rectangle", coordinates: [[-50, -15], [50, 15]] }, zIndex: show ? 260 : 120 });
         mark.events.add("click", () => { setPeek(true); toast(`${b.n > 5 ? "6+" : b.n} ${plural(b.n, "квартира", "квартиры", "квартир")} в доме — ${b.d.name.replace(/:.*$/, "")}`); });
+      } else if (act && show && b.f && (!far || b.i % 4 === 0)) {
+        // Слои включены: в подходящих районах квартиры видны пинами с ценой
+        const label = S.seg === "rent" ? `${Math.round(b.f.price / 1000)} тыс.` : `${(buyPriceOf(b.f) / 1e6).toFixed(1).replace(".", ",")} млн`;
+        mark = new ymaps.Placemark([b.lat, b.lon], { label, cls },
+          { iconLayout: pinLayout, iconShape: { type: "Rectangle", coordinates: [[-40, -14], [40, 14]] }, zIndex: 240 });
+        mark.events.add("click", () => openFlat(b.f.id));
       } else {
         mark = new ymaps.Placemark([b.lat, b.lon], { cls },
           { iconLayout: dotLayout, iconShape: { type: "Circle", coordinates: [0, 0], radius: 8 }, zIndex: show ? 220 : 100 });
@@ -260,7 +283,7 @@
       if (ds.length) {
         const lats = ds.map((d) => d.center[0]), lons = ds.map((d) => d.center[1]);
         ymap.setBounds([[Math.min(...lats) - 0.01, Math.min(...lons) - 0.02], [Math.max(...lats) + 0.01, Math.max(...lons) + 0.02]],
-          { checkZoomRange: true, zoomMargin: [document.querySelector(".top").offsetHeight + 16, 70, $("peek").offsetHeight + 96, 30], duration: 300 });
+          { checkZoomRange: true, zoomMargin: [document.querySelector(".top").offsetHeight, 60, $("peek").offsetHeight, 10], duration: 300 });
       } else ymap.setCenter(SPB, 11, { duration: 300 });
     }
   }
@@ -320,20 +343,25 @@
       bindPeek(p); return;
     }
     const ds = matched();
-    const fl = flatsFor(ds);
+    const ids = new Set(ds.map((d) => d.id));
+    const more = FLATS.filter((f) => ids.has(f.d.id)).sort((a, b) => a.price - b.price).map((f) => ({ f, d: f.d }));
+    const fl = [...flatsFor(ds), ...more];
+    const totalN = flatsFor(ds).length + BG.filter((b) => ids.has(b.d.id)).reduce((a, b) => a + b.n, 0);
+    const LANE = 12;
     const dsSorted = ds.slice().sort((a, b) => b.flats.length - a.flats.length);
     const dchips = dsSorted.slice(0, 10).map((d) => `<button class="dchip" type="button" data-d="${d.id}"><img src="${dPhoto(d, 120)}" alt="" loading="lazy"><span><b>${d.name.replace(/:.*$/, "")}</b><span>${districtSub(d)}</span></span></button>`).join("");
     const empty = `<div style="padding:0 20px 4px;font-size:14px;color:var(--sec)">${ds.length ? "В этих районах пока нет квартир с фото — посмотрите районы ниже." : `Ни один район не подходит под все слои. Снимите «${L(S.active[S.active.length - 1]).t}».`}</div>`;
-    p.innerHTML = `<div class="grab"><div class="handle"></div><div class="ph"><b>${fl.length ? "Подборка под ваши слои" : "Подборка пуста"}</b><span>${fl.length} ${plural(fl.length, "квартира", "квартиры", "квартир")} · ${ds.length} ${plural(ds.length, "район", "района", "районов")}${S.seg === "buy" && fl.length ? ` · платёж от ${Math.min(...fl.map((x) => flatPay(x.f)))} тыс.` : ""}</span></div></div>
+    p.innerHTML = `<div class="grab"><div class="handle"></div><div class="ph"><b>${fl.length ? "Подборка под ваши слои" : "Подборка пуста"}</b><span>${totalN} ${plural(totalN, "квартира", "квартиры", "квартир")} · ${ds.length} ${plural(ds.length, "район", "района", "районов")}${S.seg === "buy" && fl.length ? ` · платёж от ${Math.min(...fl.map((x) => flatPay(x.f)))} тыс.` : ""}</span></div></div>
       ${ds.length ? `<div class="dchips top${fl.length ? "" : " always"}">${dchips}</div>` : ""}
-      ${fl.length ? `<div class="lane">${fl.map(flatCard).join("")}</div>` : empty}`;
+      ${fl.length ? `<div class="lane">${fl.slice(0, S.peekOpen ? 60 : LANE).map(flatCard).join("")}${!S.peekOpen && fl.length > LANE ? `<button class="fcard more" type="button" id="laneMore"><b>Ещё ${totalN - LANE}</b><span>Смотреть все квартиры</span></button>` : ""}</div>` : empty}`;
+    if ($("laneMore")) $("laneMore").onclick = () => setPeek(true);
     p.querySelectorAll("[data-d]").forEach((b) => (b.onclick = () => openStory(b.dataset.d)));
     bindPeek(p);
   }
   // Шторка тянется за ручку: вверх — развернуть списком, вниз — свернуть; тап по шапке — переключить
   // Развёрнутая шторка встаёт под фильтры, не перекрывая их
   const peekTop = () => { const t = document.querySelector(".top"); return t.offsetTop + t.offsetHeight + 8; };
-  function setPeek(open) { S.peekOpen = open; $("peek").classList.toggle("open", open); $("peek").style.top = open ? peekTop() + "px" : ""; $("peek").scrollTop = 0; requestAnimationFrame(placeControls); }
+  function setPeek(open) { S.peekOpen = open; if (S.active.length) renderPeek(); $("peek").classList.toggle("open", open); $("peek").style.top = open ? peekTop() + "px" : ""; $("peek").scrollTop = 0; requestAnimationFrame(placeControls); }
   function bindPeek(p) {
     p.classList.toggle("open", !!S.peekOpen); p.style.top = S.peekOpen ? peekTop() + "px" : "";
     p.querySelectorAll("[data-flat]").forEach((b) => (b.onclick = () => openFlat(b.dataset.flat)));
@@ -507,8 +535,8 @@
 
   /* ---------- экран квартиры ---------- */
   function openFlat(id) {
-    const f = A.LISTINGS.find((x) => x.id === id); if (!f) return;
-    const d = city.find((x) => x.id === A.findDistrict(f.lat, f.lon).id);
+    const f = findFlat(id); if (!f) return;
+    const d = flatDistrict(f);
     const why = d ? S.active.filter((x) => L(x).test(d)).map((x) => tag(L(x).reason(d), "#227e01", "#ebf9e6")) : [];
     $("flat").innerHTML = `<div class="shead"><button class="iconbtn" type="button" id="flatBack" aria-label="Назад">${ic("back", 24)}</button><div class="tt"><b>${flatPrice(f)}</b><span>${flatTitle(f)}</span></div><button class="iconbtn" type="button" data-fav="${f.id}" aria-label="В избранное" style="color:#005ede">${ic(S.fav[f.id] ? "heartf" : "heart", 24, "#005ede")}</button></div>
       <div class="sbody"><div class="fbig"><div class="gal">${f.photos.map((p) => `<figure><img src="${flatSrc(p)}" alt="">${p.caption ? `<figcaption>${p.caption}</figcaption>` : ""}</figure>`).join("")}</div></div>

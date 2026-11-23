@@ -353,3 +353,5 @@ body{letter-spacing:-.2px}
 .peek.open .dchips{padding:4px 16px 16px}
 /* Крестик в сторис — обычная иконка в правом углу, не растягивается как обложка */
 .cover .iconbtn svg{position:static;inset:auto;width:24px;height:24px}
+.fcard.more{border:1px solid var(--brd,#d0d8e9);align-items:center;justify-content:center;gap:4px;min-height:112px;color:#005ede;font-size:15px;scroll-snap-align:start}
+.fcard.more span{font-size:13px;color:var(--sec)}
