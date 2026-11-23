@@ -68,6 +68,27 @@
     d.schoolAvg = d.schools.reduce((a, s) => a + s.rating, 0) / d.schools.length;
   });
 
+  /* ---------- «горох» и мультипины: фон рынка вокруг 7 настоящих квартир (пример для концепта) ---------- */
+  let seed = 7;
+  const rnd = () => ((seed = (seed * 16807) % 2147483647) - 1) / 2147483646;
+  const inRing = (pt, ring) => { let c = false; for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) { const [yi, xi] = ring[i], [yj, xj] = ring[j]; if ((yi > pt[0]) !== (yj > pt[0]) && pt[1] < ((xj - xi) * (pt[0] - yi)) / (yj - yi) + xi) c = !c; } return c; };
+  const inPoly = (pt, poly) => inRing(pt, poly[0]) && !poly.slice(1).some((h) => inRing(pt, h));
+  const DENS = { center: 11, old: 9, green: 5, new: 10, panel: 7, suburb: 3 };
+  const BG = []; // { lat, lon, d, price (аренда, ₽/мес), buy (млн), n — квартир в доме (n > 1 — мультипин) }
+  city.forEach((d) => {
+    const polys = ZONES[d.id]; const ring = polys[0][0];
+    const la = ring.map((p) => p[0]), lo = ring.map((p) => p[1]);
+    const box = [Math.min(...la), Math.max(...la), Math.min(...lo), Math.max(...lo)];
+    let want = DENS[d.group] || 6, tries = 0;
+    while (want > 0 && tries++ < 400) {
+      const pt = [box[0] + rnd() * (box[1] - box[0]), box[2] + rnd() * (box[3] - box[2])];
+      if (!polys.some((pl) => inPoly(pt, pl))) continue;
+      const k = 0.75 + rnd() * 0.6;
+      const n = rnd() < 0.09 ? 2 + Math.floor(rnd() * 6) : 1;
+      BG.push({ lat: pt[0], lon: pt[1], d, n, i: BG.length, price: Math.round((RENT_MED[d.group] || 40000) * k / 1000) * 1000, buy: Math.round((BUY_MED[d.group] || 9) * k * 10) / 10 });
+      want--;
+    }
+  });
   const bestSchool = (d) => d.schools.reduce((a, s) => (s.rating > a.rating ? s : a), d.schools[0]);
   const C = { blue: "#0468ff", green: "#2f9e4f", teal: "#1f8a70", orange: "#e2572b", purple: "#7c4ddb", magenta: "#c2378a", amber: "#e0a100", gray: "#697797", dark: "#0d162e" };
   const LAYERS = {
@@ -145,7 +166,7 @@
   const tint = (c) => c + "1f";
 
   /* ---------- карта ---------- */
-  let ymap = null, zonesCol = null, labelsCol = null, pinsCol = null, pinLayout, distLayout;
+  let ymap = null, zonesCol = null, labelsCol = null, pinsCol = null, pinLayout, distLayout, dotLayout, multiLayout;
   const SPB = [59.9386, 30.3141];
   const WORK = { t: "Работа", sub: "Невский проспект", coords: [59.9343, 30.3351] };
   function initMap() {
@@ -158,9 +179,13 @@
       ymap = new ymaps.Map("map", { center: SPB, zoom: 11, controls: [] }, { suppressMapOpenBlock: true });
       $("mapStub").remove();
       pinLayout = ymaps.templateLayoutFactory.createClass('<div class="ypin $[properties.cls]"><span class="bb">$[properties.label]</span><span class="pd"></span></div>');
+      dotLayout = ymaps.templateLayoutFactory.createClass('<div class="ydot $[properties.cls]"></div>');
+      multiLayout = ymaps.templateLayoutFactory.createClass('<div class="ypin multi $[properties.cls]"><span class="bb"><span class="cnt">$[properties.n]</span>$[properties.label]</span></div>');
       distLayout = ymaps.templateLayoutFactory.createClass('<div class="ydist" style="background:$[properties.color]">$[properties.name]<span>$[properties.sub]</span></div>');
       zonesCol = new ymaps.GeoObjectCollection(); labelsCol = new ymaps.GeoObjectCollection(); pinsCol = new ymaps.GeoObjectCollection();
       ymap.geoObjects.add(zonesCol); ymap.geoObjects.add(pinsCol); ymap.geoObjects.add(labelsCol);
+      let lastFar = null;
+      ymap.events.add("boundschange", (e) => { const far = e.get("newZoom") < 12; if (far !== lastFar) { lastFar = far; renderMap(false); } });
       renderMap(true);
     });
   }
@@ -193,6 +218,27 @@
         mark.events.add("click", () => openStory(d.id));
         labelsCol.add(mark);
       }
+    });
+    // Горох — одна квартира, мультипин — несколько в доме; при слоях остаются только в подходящих районах
+    // Как в приложении: на общем масштабе мультипинов меньше (каждый третий), остальные — горохом
+    const far = ymap.getZoom() < 12; let mi = 0;
+    BG.forEach((b) => {
+      const show = !act || matches(b.d);
+      if (b.n > 1 && far && mi++ % 3) { b = { ...b, n: 1 }; }
+      if (act && !show && b.n === 1) return;
+      const cls = show ? "" : "dim";
+      let mark;
+      if (b.n > 1) {
+        const label = S.seg === "rent" ? `от ${Math.round(b.price / 1000)} тыс.` : `от ${String(b.buy).replace(".", ",")} млн`;
+        mark = new ymaps.Placemark([b.lat, b.lon], { n: b.n > 5 ? "6+" : b.n, label, cls },
+          { iconLayout: multiLayout, iconShape: { type: "Rectangle", coordinates: [[-50, -15], [50, 15]] }, zIndex: show ? 260 : 120 });
+        mark.events.add("click", () => { setPeek(true); toast(`${b.n > 5 ? "6+" : b.n} ${plural(b.n, "квартира", "квартиры", "квартир")} в доме — ${b.d.name.replace(/:.*$/, "")}`); });
+      } else {
+        mark = new ymaps.Placemark([b.lat, b.lon], { cls },
+          { iconLayout: dotLayout, iconShape: { type: "Circle", coordinates: [0, 0], radius: 8 }, zIndex: show ? 220 : 100 });
+        mark.events.add("click", () => ymap.setCenter([b.lat, b.lon], Math.min(ymap.getZoom() + 2, 16), { duration: 250 }));
+      }
+      pinsCol.add(mark);
     });
     A.LISTINGS.forEach((f) => {
       const d = city.find((x) => x.id === A.findDistrict(f.lat, f.lon).id);

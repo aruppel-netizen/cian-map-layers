@@ -330,3 +330,9 @@ body{letter-spacing:-.2px}
 .peek.open .fcard{width:100%}
 .peek.open .fcard .fph{height:220px}
 .fcard .fpay{font-size:13px;line-height:18px;color:var(--green-t,#227e01);font-weight:600}
+
+/* Горох — квартира без цены на мелком масштабе; мультипин — пин со счётчиком (Figma 551:132621, Counter) */
+.ydot{width:10px;height:10px;border-radius:50%;background:#005ede;border:2px solid #fff;box-sizing:border-box;transform:translate(-50%,-50%);box-shadow:0 1px 4px rgba(0,0,0,.18);cursor:pointer}
+.ydot.dim{background:#8a94ab;opacity:.5}
+.ypin.multi .bb{padding:4px 8px 4px 4px;gap:4px}
+.ypin.multi .cnt{min-width:26px;height:22px;box-sizing:border-box;padding:2px 4px;border-radius:12px;background:#005ede;color:#fff;font-size:14px;line-height:17px;font-weight:600;letter-spacing:-.24px;display:flex;align-items:center;justify-content:center}
