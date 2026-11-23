@@ -510,7 +510,7 @@
     }
     if (S.slide === 2) {
       info = rent
-        ? `<div class="stat" style="background:var(--main-bg)"><b>≈ ${Math.round(d.tc * 2 * 220 / 60)} часов</b><span>в дороге до центра за год · ${d.toCenter}</span></div><div class="fact">${ic("spark", 20, C.orange)}<span>Пробки вечером: ${d.traffic}/10 — ${d.trafficNote}</span></div><div class="fact">${ic("walk", 20, C.blue)}<span>Метро: ${d.metro.length ? d.metro.map((m) => m[0] || m).join(", ") : d.nearestMetro}</span></div>`
+        ? `<div class="stat" style="background:var(--main-bg)"><b>≈ ${Math.round(d.tc * 2 * 220 / 60)} ${plural(Math.round(d.tc * 2 * 220 / 60), "час", "часа", "часов")}</b><span>в дороге до центра за год · ${d.toCenter}</span></div><div class="fact">${ic("spark", 20, C.orange)}<span>Пробки вечером: ${d.traffic}/10 — ${d.trafficNote}</span></div><div class="fact">${ic("walk", 20, C.blue)}<span>Метро: ${d.metro.length ? d.metro.map((m) => m.name || m[0] || m).join(", ") : d.nearestMetro}</span></div>`
         : `<div class="stat" style="background:var(--lav)"><span style="color:var(--purple);font-weight:700">Платёж vs аренда</span><b>${d.pay} vs ${Math.round(d.rentMed / 1000)} тыс.</b><span>${d.pay > d.rentMed / 1000 ? `Разница ${d.pay - Math.round(d.rentMed / 1000)} тыс. в месяц идёт в ваши метры` : "Платёж меньше аренды такой же квартиры"}</span></div><div class="quote">Первый взнос 20%, ставка — пример для концепта</div>`;
     }
     const fav = !!S.fav["d-" + d.id];
