@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Слои">
+<meta name="theme-color" content="#ffffff">
+<link rel="apple-touch-icon" href="icon/apple-touch-icon.png">
+<title>Циан · Слои карты в приложении — прототип</title>
+<link rel="stylesheet" href="layers.css">
+<!-- Живая карта Яндекса: грузится параллельно, интерфейс работает и без неё -->
+<script id="ymaps-script" src="https://api-maps.yandex.ru/2.1/?lang=ru_RU" async></script>
+</head>
+<body>
+<div class="stage">
+  <aside class="side">
+    <h1>Слои карты в приложении</h1>
+    <p>Слои ранжируются под запрос и собирают подборку из настоящих квартир и районов Петербурга.</p>
+    <div class="scr" id="screens"></div>
+    <ol id="tips"></ol>
+    <p class="small">На телефоне меню экранов — тройной тап. Квартиры и фото — из прототипа «Транспортная доступность», фото районов — Викисклад. Характер районов и цены покупки — пример для концепта.</p>
+  </aside>
+
+  <div class="phone" id="phone">
+    <div id="map"><div class="map-stub" id="mapStub">Загружаем карту…</div></div>
+    <div class="statusbar" aria-hidden="true"><span>9:41</span><i><b></b><b></b></i></div>
+    <div class="top">
+      <div class="sbox">
+        <div class="q" id="searchText"></div>
+        <button class="save" type="button">Сохранить</button>
+        <button class="flt" type="button" aria-label="Фильтры" data-ic="sliders"></button>
+      </div>
+      <div class="chips" id="chips"></div>
+    </div>
+    <div class="mapctl" id="mapctl">
+      <button class="mc layers" id="navLayers" type="button" aria-label="Слои карты"><span data-ic="layers"></span><span class="cnt" id="layerCount" hidden></span></button>
+      <button class="mc" type="button" aria-label="Нарисовать область" data-ic="draw"></button>
+      <div class="zoom"><button type="button" aria-label="Приблизить" data-ic="plus" id="zin"></button><hr><button type="button" aria-label="Отдалить" data-ic="minus" id="zout"></button></div>
+      <button class="mc" type="button" aria-label="Моё местоположение" data-ic="nav"></button>
+    </div>
+    <button class="hint" id="hint" type="button">Подобрали слои под ваш запрос — посмотрите, какие районы подходят</button>
+    <div class="peek" id="peek"></div>
+    <nav class="tabbar" aria-label="Навигация">
+      <div class="tabs">
+        <button class="tab" type="button"><span data-ic="homeF"></span>Главная<span class="badge2">2</span></button>
+        <button class="tab on" type="button"><span data-ic="searchF"></span>Поиск</button>
+        <button class="tab" type="button"><span data-ic="heartF"></span>Избранное</button>
+        <button class="tab" type="button"><span data-ic="chatF"></span>Сообщения</button>
+        <button class="tab" type="button"><span data-ic="userF"></span>Кабинет</button>
+      </div>
+      <div class="homeind"></div>
+    </nav>
+
+    <div class="scrim" id="scrim"></div>
+    <section class="sheet" id="layersSheet" aria-label="Слои карты"></section>
+    <section class="sheet" id="toolSheet" aria-label="Настройка слоя"></section>
+    <section class="sheet" id="menuSheet" aria-label="Экраны для теста"></section>
+    <section class="screen" id="flat" aria-label="Квартира"></section>
+    <section class="story" id="story" aria-label="Карточка района"></section>
+    <div class="toast" id="toast" role="status"></div>
+  </div>
+</div>
+
+<!-- Данные из основного прототипа: квартиры с фото, районы, контуры районов -->
+<script src="js/format.js"></script>
+<script src="js/icons.js"></script>
+<script src="js/seating-types.js"></script>
+<script src="js/data.js"></script>
+<script src="js/districts.js"></script>
+<script src="js/districts-zones.js"></script>
+<script src="layers.js"></script>
+</body>
+</html>
