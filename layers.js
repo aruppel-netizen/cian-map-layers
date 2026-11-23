@@ -85,7 +85,7 @@
       if (!polys.some((pl) => inPoly(pt, pl))) continue;
       const k = 0.75 + rnd() * 0.6;
       const n = rnd() < 0.09 ? 2 + Math.floor(rnd() * 6) : 1;
-      BG.push({ lat: pt[0], lon: pt[1], d, n, i: BG.length, price: Math.round((RENT_MED[d.group] || 40000) * k / 1000) * 1000, buy: Math.round((BUY_MED[d.group] || 9) * k * 10) / 10 });
+      BG.push({ lat: pt[0], lon: pt[1], d, n, i: BG.length, g: rnd() < 0.3, price: Math.round((RENT_MED[d.group] || 40000) * k / 1000) * 1000, buy: Math.round((BUY_MED[d.group] || 9) * k * 10) / 10 });
       want--;
     }
   });
@@ -226,7 +226,7 @@
       const show = !act || matches(b.d);
       if (b.n > 1 && far && mi++ % 3) { b = { ...b, n: 1 }; }
       if (act && !show && b.n === 1) return;
-      const cls = show ? "" : "dim";
+      const cls = (show ? "" : "dim") + (b.g ? " green" : "");
       let mark;
       if (b.n > 1) {
         const label = S.seg === "rent" ? `от ${Math.round(b.price / 1000)} тыс.` : `от ${String(b.buy).replace(".", ",")} млн`;
@@ -244,7 +244,8 @@
       const d = city.find((x) => x.id === A.findDistrict(f.lat, f.lon).id);
       const show = !act || (d && matches(d));
       const label = S.seg === "rent" ? `${Math.round(f.price / 1000)} тыс.` : `${(buyPriceOf(f) / 1e6).toFixed(1).replace(".", ",")} млн`;
-      const p = new ymaps.Placemark([f.lat, f.lon], { label, cls: show ? "" : "dim" },
+      const green = A.LISTINGS.indexOf(f) % 3 === 1;
+      const p = new ymaps.Placemark([f.lat, f.lon], { label, cls: (show ? "" : "dim") + (green ? " green" : "") },
         { iconLayout: pinLayout, iconShape: { type: "Rectangle", coordinates: [[-40, -14], [40, 14]] }, zIndex: show ? 300 : 150 });
       p.events.add("click", () => openFlat(f.id));
       pinsCol.add(p);
@@ -329,9 +330,11 @@
     bindPeek(p);
   }
   // Шторка тянется за ручку: вверх — развернуть списком, вниз — свернуть; тап по шапке — переключить
-  function setPeek(open) { S.peekOpen = open; $("peek").classList.toggle("open", open); $("peek").style.top = open ? document.querySelector(".top").offsetHeight + "px" : ""; $("peek").scrollTop = 0; requestAnimationFrame(placeControls); }
+  // Развёрнутая шторка встаёт под фильтры, не перекрывая их
+  const peekTop = () => { const t = document.querySelector(".top"); return t.offsetTop + t.offsetHeight + 8; };
+  function setPeek(open) { S.peekOpen = open; $("peek").classList.toggle("open", open); $("peek").style.top = open ? peekTop() + "px" : ""; $("peek").scrollTop = 0; requestAnimationFrame(placeControls); }
   function bindPeek(p) {
-    p.classList.toggle("open", !!S.peekOpen); p.style.top = S.peekOpen ? document.querySelector(".top").offsetHeight + "px" : "";
+    p.classList.toggle("open", !!S.peekOpen); p.style.top = S.peekOpen ? peekTop() + "px" : "";
     p.querySelectorAll("[data-flat]").forEach((b) => (b.onclick = () => openFlat(b.dataset.flat)));
     p.querySelectorAll("[data-fav]").forEach((b) => (b.onclick = () => favToggle(b)));
     const g = p.querySelector(".grab");

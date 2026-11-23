@@ -336,3 +336,10 @@ body{letter-spacing:-.2px}
 .ydot.dim{background:#8a94ab;opacity:.5}
 .ypin.multi .bb{padding:4px 8px 4px 4px;gap:4px}
 .ypin.multi .cnt{min-width:26px;height:22px;box-sizing:border-box;padding:2px 4px;border-radius:12px;background:#005ede;color:#fff;font-size:14px;line-height:17px;font-weight:600;letter-spacing:-.24px;display:flex;align-items:center;justify-content:center}
+
+/* Зелёные: точка, пин и счётчик мультипина */
+.ydot.green{background:#34ac0a}
+.ypin.green .bb{border-color:#d4f2c9}
+.ypin.green:not(.multi) .bb{background:#34ac0a;border-color:#34ac0a;color:#fff}
+.ypin.multi.green .cnt{background:#34ac0a}
+.ydot.green.dim{background:#8a94ab}
